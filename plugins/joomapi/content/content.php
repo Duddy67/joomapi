@@ -144,10 +144,6 @@ class plgJoomapiContent extends JPlugin
 
   public function onRequestContent($request)
   {
-    if(isset($request['status'])) {
-      return $request;
-    }
-
     switch($request['resource']) {
       case 'articles':
 	if($request['action'] == 'read') {

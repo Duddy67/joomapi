@@ -39,6 +39,7 @@ class JoomapiHelperApi
 
     $request['action'] = $actions[$jinput->getMethod()];
 
+//file_put_contents('debog_file.txt', print_r($_REQUEST, true));
     // Collects the parameters of the url query.
     $resource = $jinput->get('resource', '', 'string');
     $id = $jinput->get('id', 0, 'integer');
