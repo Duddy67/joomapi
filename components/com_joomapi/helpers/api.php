@@ -66,6 +66,29 @@ class JoomapiHelperApi
   }
 
 
+  public static function getPayload($id = '')
+  {
+    // Gets the payload sent by the client.
+    $payload = json_decode(JFactory::getApplication()->input->json->getRaw(), true);
+
+    // Checks that the payload is valid and that it's an array.
+    if(is_null($payload) || !is_array($payload)) {
+      return self::generateError('REQ_IPL');
+    }
+
+    if(!empty($id)) {
+      if(isset($payload[$id])) {
+	return $payload[$id];
+      }
+      else {
+	return self::generateError('REQ_INF');
+      }
+    }
+
+    return $payload;
+  }
+
+
   /**
    * Generates an error array from the given error code.
    *
@@ -97,6 +120,18 @@ class JoomapiHelperApi
         $error['error_description'] = 'Plugin not enabled';
         break;
 
+      case 'SRV_UNF':
+	$error['status'] = '404 Not Found';
+        $error['error_code'] = 'SRV_UNF';
+        $error['error_description'] = 'User not found';
+        break;
+
+      case 'SRV_PNC':
+	$error['status'] = '401 Unauthorized';
+        $error['error_code'] = 'SRV_PNC';
+        $error['error_description'] = 'Password not correct';
+        break;
+
       case 'REQ_AUN':
 	$error['status'] = '400 Bad Request';
         $error['error_code'] = 'REQ_AUN';
@@ -106,7 +141,19 @@ class JoomapiHelperApi
       case 'REQ_IRQ':
 	$error['status'] = '400 Bad Request';
         $error['error_code'] = 'REQ_IRQ';
-        $error['error_description'] = 'Invalid Request';
+        $error['error_description'] = 'Invalid request';
+        break;
+
+      case 'REQ_IPL':
+	$error['status'] = '400 Bad Request';
+        $error['error_code'] = 'REQ_IPL';
+        $error['error_description'] = 'Invalid payload';
+        break;
+
+      case 'REQ_INF':
+	$error['status'] = '404 Not Found';
+        $error['error_code'] = 'REQ_INF';
+        $error['error_description'] = 'Identifier not found';
         break;
     }
 

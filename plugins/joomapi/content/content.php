@@ -7,8 +7,8 @@
 
 // No direct access
 defined('_JEXEC') or die('Restricted access');
-JLoader::register('JoomapiHelperApi', JPATH_SITE.'/components/com_joomapi/helpers/api.php');
 
+JLoader::register('JoomapiHelperApi', JPATH_SITE.'/components/com_joomapi/helpers/api.php');
 
 
 class plgJoomapiContent extends JPlugin

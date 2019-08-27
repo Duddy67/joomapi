@@ -35,3 +35,17 @@ CREATE TABLE `#__joomapi_notification` (
   INDEX `idx_check_out` (`checked_out` ASC) )
 ENGINE = MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
 
+
+-- -----------------------------------------------------
+-- Table `#__joomapi_user_token`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `#__joomapi_user_token`;
+CREATE TABLE `#__joomapi_user_token` (
+  `user_id` INT UNSIGNED NOT NULL ,
+  `user_token` VARCHAR(225) NOT NULL ,
+  `device_token` TEXT NOT NULL ,
+  `created` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00' ,
+  INDEX `idx_user_id` (`user_id` ASC) ,
+  INDEX `idx_user_token` (`user_token` ASC) )
+ENGINE = MyISAM DEFAULT CHARSET=utf8;
+

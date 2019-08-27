@@ -8,6 +8,8 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
+JLoader::register('JoomapiHelperApi', JPATH_SITE.'/components/com_joomapi/helpers/api.php');
+use Joomla\CMS\User\UserHelper;
 
 
 class plgJoomapiUsers extends JPlugin
@@ -34,19 +36,42 @@ class plgJoomapiUsers extends JPlugin
 
   public function connectUser()
   {
+    $deviceToken = JoomapiHelperApi::getPayload('device_token');
+
+    if(isset($deviceToken['status'])) {
+      return $deviceToken;
+    }
+
     $jinput = JFactory::getApplication()->input;
     $authorization = $jinput->server->get('HTTP_AUTHORIZATION', '', 'str');
-
+//file_put_contents('debog_file.txt', print_r($deviceToken, true));
     if(preg_match('#^\s*(Basic)\s+(.+)$#', $authorization, $matches)) {
       $base64 = $matches[2];
       $authValue = base64_decode($base64);
       preg_match('#^(.+):(.+)?$#', $authValue, $matches);
     }
 
+    $db = JFactory::getDbo();
+    $query = $db->getQuery(true)
+    ->select('id, password')
+    ->from('#__users')
+    ->where('username='.$db->quote($matches[1]));
+    $db->setQuery($query);
+    $user = $db->loadObject();
+
+    if($user === null) {
+      return JoomapiHelperApi::generateError('SRV_UNF');
+    }
+
+    //$userId = UserHelper::getUserId($matches[1]);
+    if(UserHelper::verifyPassword($matches[2], $user->password) !== true) {
+      return JoomapiHelperApi::generateError('SRV_PNC');
+    }
+
     $response['status'] = '200 OK';
 
-    $response['token'] = 'fgh8dg89fhdg9988';
-    $response['authorization'] = $authValue;
+    $response['token'] = $this->generateToken();
+    $response['authorization'] = $user->id;
 
     return $response;
   }
@@ -59,6 +84,10 @@ class plgJoomapiUsers extends JPlugin
 
   public function generateToken()
   {
+    $token = openssl_random_pseudo_bytes(16);
+    $token = bin2hex($token);
+
+    return $token;
   }
 
 

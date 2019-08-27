@@ -31,6 +31,11 @@ class JoomapiModelRequest extends JModelItem
       return JoomapiHelperApi::generateError('SRV_PNE');
     }
 
+    $request = JoomapiHelperApi::getRequest();
+
+    if(isset($request['status'])) {
+      return $request;
+    }
     //$payload = json_decode($jinput->json->getRaw(), true);
     //$authorization = $jinput->server->get('HTTP_AUTHORIZATION', '', 'str');
     //$authType = $jinput->server->get('HTTP_AUTH_TYPE', '', 'str');
@@ -38,7 +43,7 @@ class JoomapiModelRequest extends JModelItem
     $dispatcher = JEventDispatcher::getInstance();
 
     // Sends the request to the api plugin then gets the plugin's response.
-    $result = $dispatcher->trigger('onRequest'.ucfirst($component), array(JoomapiHelperApi::getRequest()));
+    $result = $dispatcher->trigger('onRequest'.ucfirst($component), array($request));
 
     return $result[0];
   }
