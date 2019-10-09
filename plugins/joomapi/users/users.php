@@ -68,9 +68,30 @@ class plgJoomapiUsers extends JPlugin
       return JoomapiHelperApi::generateError('SRV_PNC');
     }
 
+    // Removes a possible previous token registration for this user.
+    $query->clear();
+    $query->delete('#__joomapi_user_token')
+	  ->where('user_id='.(int)$user->id)
+	  ->where('device_token='.$db->Quote($deviceToken));
+    $db->setQuery($query);
+    $db->execute();
+
+    // Gets the current date and time (UTC).
+    $now = JFactory::getDate()->toSql();
+    $token = $this->generateToken();
+    $columns = array('user_id', 'user_token', 'device_token', 'created');
+    $values = $user->id.','.$db->Quote($token).','.$db->Quote($deviceToken).','.$db->Quote($now);
+
+    $query->clear();
+    $query->insert('#__joomapi_user_token')
+	  ->columns($columns)
+	  ->values($values);
+    $db->setQuery($query);
+    $db->execute();
+
     $response['status'] = '200 OK';
 
-    $response['token'] = $this->generateToken();
+    $response['token'] = $token;
     $response['authorization'] = $user->id;
 
     return $response;

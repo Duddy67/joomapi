@@ -50,12 +50,12 @@ class JoomapiViewRequest extends JViewLegacy
     unset($this->response['status']);
 
     // Enable CORS
-    if ($enable_cors != '0')
+    /*if ($enable_cors != '0')
     {
       header('Access-Control-Allow-Origin: *');
       header('Access-Control-Allow-Methods: GET,POST,PUT,DELETE,OPTIONS');
       header('Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With');
-    }
+    }*/
 
     echo json_encode($this->response);
 
