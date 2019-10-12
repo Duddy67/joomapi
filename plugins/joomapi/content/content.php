@@ -74,6 +74,7 @@ class plgJoomapiContent extends JPlugin
       $article['metadata'] = json_decode($article['metadata']);
       $article['images'] = json_decode($article['images']);
       $article['urls'] = json_decode($article['urls']);
+      $article['intro_plain'] = strip_tags($article['introtext']);
 
       $response['articles'][] = $article;
     }
