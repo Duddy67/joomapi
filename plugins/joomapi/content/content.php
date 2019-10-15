@@ -42,17 +42,30 @@ class plgJoomapiContent extends JPlugin
   {
     $response = array();
 
+    // Retrieves possible extra variables.
+    $jinput = JFactory::getApplication()->input;
+    $search = $jinput->get('search', '', 'string');
+    $page = $jinput->get('page', 0, 'integer');
+
     $db = JFactory::getDbo();
     $query = $db->getQuery(true);
-	    $query->select('*')
-	    ->from('#__content');
+	    $query->select('c.*, ca.title AS cat_title, uc.name AS creator_name, um.name AS modif_name')
+		  ->from('#__content AS c')
+		  ->join('LEFT', '#__categories AS ca ON c.catid=ca.id')
+		  ->join('LEFT', '#__users AS uc ON c.created_by=uc.id')
+		  ->join('LEFT', '#__users AS um ON c.modified_by=um.id');
 
     if($request['id'] !== null) {
-      $query->where('id='.(int)$request['id']);
+      $query->where('c.id='.(int)$request['id']);
     }
 
     if($request['association'] == 'categories' && $request['a_id'] !== null) {
       $query->where('catid='.(int)$request['a_id']);
+    }
+
+    if(!empty($search)) {
+      $search = $db->Quote('%'.$db->escape($search, true).'%');
+      $query->where('(c.title LIKE '.$search.')');
     }
 
     $db->setQuery($query);
@@ -74,7 +87,7 @@ class plgJoomapiContent extends JPlugin
       $article['metadata'] = json_decode($article['metadata']);
       $article['images'] = json_decode($article['images']);
       $article['urls'] = json_decode($article['urls']);
-      $article['intro_plain'] = strip_tags($article['introtext']);
+      $article['intro_raw'] = strip_tags($article['introtext']);
 
       $response['articles'][] = $article;
     }

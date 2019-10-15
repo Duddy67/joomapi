@@ -76,22 +76,27 @@ class JoomapiRouter extends JComponentRouterBase
     $vars = array();
 
     $count = count($segments);
+    // Guesses the type of request according to the number of segments.
 
+    // All of the resources.
     if($count == 2) {
       $vars['component'] = $segments[0];
       $vars['resource'] = $segments[1];
     }
+    // A specific resource.
     elseif($count == 3) {
       $vars['component'] = $segments[0];
       $vars['resource'] = $segments[1];
       $vars['id'] = $segments[2];
     }
+    // All of the parent item resources.
     elseif($count == 4) {
       $vars['component'] = $segments[0];
       $vars['association'] = $segments[1];
       $vars['a_id'] = $segments[2];
       $vars['resource'] = $segments[3];
     }
+    // A specific parent item resource.
     elseif($count == 5) {
       $vars['component'] = $segments[0];
       $vars['association'] = $segments[1];
