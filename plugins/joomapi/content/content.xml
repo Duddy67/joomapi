@@ -14,4 +14,16 @@
 	    <folder>language</folder>
 	</files>
 
+	<config>
+	    <fields name="params">
+	      <fieldset name="basic">
+		<field name="limit"
+		       type="limitbox"
+		       class="inputbox input-mini"
+		       default="25"
+		       label="PLG_JOOMAPI_LIST_LIMIT"
+		       description="PLG_JOOMAPI_LIST_LIMIT_DESC" />
+	      </fieldset>
+	    </fields>
+	</config>
 </extension>

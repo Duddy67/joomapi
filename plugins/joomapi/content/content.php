@@ -42,63 +42,104 @@ class plgJoomapiContent extends JPlugin
   {
     $response = array();
 
-    // Retrieves possible extra variables.
+    // Retrieves possible extra pagination variables.
     $jinput = JFactory::getApplication()->input;
     $search = $jinput->get('search', '', 'string');
     $page = $jinput->get('page', 0, 'integer');
 
-    $db = JFactory::getDbo();
-    $query = $db->getQuery(true);
-	    $query->select('c.*, ca.title AS cat_title, uc.name AS creator_name, um.name AS modif_name')
-		  ->from('#__content AS c')
-		  ->join('LEFT', '#__categories AS ca ON c.catid=ca.id')
-		  ->join('LEFT', '#__users AS uc ON c.created_by=uc.id')
-		  ->join('LEFT', '#__users AS um ON c.modified_by=um.id');
+    // Computes offset value for pagination.
+    $limit = $this->params->def('limit', 50);
+    $offset = $pages = 0;
 
-    if($request['id'] !== null) {
-      $query->where('c.id='.(int)$request['id']);
+    if($page && $limit) {
+      $offset = $page * $limit;
     }
 
+    $db = JFactory::getDbo();
+    $query = $db->getQuery(true);
+    // Fetches the required articles.
+    // N.B: Uses SQL_CALC_FOUND_ROWS for pagination.
+    $query->select('SQL_CALC_FOUND_ROWS c.*, ca.title AS cat_title, uc.name AS creator_name, um.name AS modif_name')
+	  ->from('#__content AS c')
+	  ->join('LEFT', '#__categories AS ca ON c.catid=ca.id')
+	  ->join('LEFT', '#__users AS uc ON c.created_by=uc.id')
+	  ->join('LEFT', '#__users AS um ON c.modified_by=um.id');
+
+    // Returns articles from a given category.
     if($request['association'] == 'categories' && $request['a_id'] !== null) {
       $query->where('catid='.(int)$request['a_id']);
     }
 
-    if(!empty($search)) {
-      $search = $db->Quote('%'.$db->escape($search, true).'%');
-      $query->where('(c.title LIKE '.$search.')');
+    // Returns a given article.
+    if($request['id'] !== null) {
+      $query->where('c.id='.(int)$request['id']);
+    }
+    // Returns several articles.
+    else {
+      if(!empty($search)) {
+	$search = $db->Quote('%'.$db->escape($search, true).'%');
+	$query->where('(c.title LIKE '.$search.')');
+      }
     }
 
-    $db->setQuery($query);
-    $articles = $db->loadAssocList();
+    // 
+    $db->setQuery($query, $offset, $limit);
+    $results = $db->loadAssocList();
 
-    if($request['id'] !== null && empty($articles)) {
+    // The given article has not been found.
+    if($request['id'] !== null && empty($results)) {
       return JoomapiHelperApi::generateError('REQ_RNF');
     }
 
+    // Sets the request status.
     $response['status'] = '200 OK';
+    $articles = array();
 
-    if($request['id'] === null) {
-      $response['total'] = count($articles);
+    // Reshapes some article attributes.
+    foreach($results as $result) {
+      $result['metadata'] = json_decode($result['metadata']);
+      $result['images'] = json_decode($result['images']);
+      $result['urls'] = json_decode($result['urls']);
+      $result['intro_raw'] = strip_tags($result['introtext']);
+
+      $articles[] = $result;
     }
 
-    $response['articles'] = array();
-
-    foreach($articles as $article) {
-      $article['metadata'] = json_decode($article['metadata']);
-      $article['images'] = json_decode($article['images']);
-      $article['urls'] = json_decode($article['urls']);
-      $article['intro_raw'] = strip_tags($article['introtext']);
-
-      $response['articles'][] = $article;
-    }
-
+    // Returns the given article data.
     if($request['id'] !== null) {
-      foreach($response['articles'][0] as $key => $value) {
+      // Goes up one level in the article array and sets the response elements with the
+      // article attributes.
+      foreach($articles[0] as $key => $value) {
 	$response[$key] = $value;
       }
 
-      unset($response['articles']);
+      return $response;
     }
+
+    // Retrieves the total number of rows.
+    $query->clear()
+          ->select('FOUND_ROWS()');
+    $db->setQuery($query);
+    $total = $db->loadResult();
+
+    // Computes the number of pages.
+    if($total && !$limit) {
+      $pages = 1;
+    }
+    elseif($total && $limit) {
+      $pages = ceil($total / $limit);
+    }
+
+    if(!$page) {
+      // Starts on page 1 by default.
+      $page = 1;
+    }
+
+    // Sets the response.
+    $response['page'] = $page;
+    $response['pages'] = $pages;
+    $response['total'] = $total;
+    $response['articles'] = $articles;
 
     return $response;
   }
