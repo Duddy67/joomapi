@@ -45,20 +45,20 @@ class plgJoomapiContent extends JPlugin
     // Retrieves possible extra pagination variables.
     $jinput = JFactory::getApplication()->input;
     $search = $jinput->get('search', '', 'string');
-    $page = $jinput->get('page', 0, 'integer');
+    $page = $jinput->get('page', 1, 'integer');
 
-    // Computes offset value for pagination.
+    // Computes the offset value for pagination.
     $limit = $this->params->def('limit', 50);
     $offset = $pages = 0;
 
-    if($page && $limit) {
-      $offset = $page * $limit;
+    if($page > 1 && $limit) {
+      $offset = ($page - 1) * $limit;
     }
 
     $db = JFactory::getDbo();
     $query = $db->getQuery(true);
     // Fetches the required articles.
-    // N.B: Uses SQL_CALC_FOUND_ROWS for pagination.
+    // N.B: Uses SQL_CALC_FOUND_ROWS and FOUND_ROWS() for pagination.
     $query->select('SQL_CALC_FOUND_ROWS c.*, ca.title AS cat_title, uc.name AS creator_name, um.name AS modif_name')
 	  ->from('#__content AS c')
 	  ->join('LEFT', '#__categories AS ca ON c.catid=ca.id')
@@ -128,11 +128,6 @@ class plgJoomapiContent extends JPlugin
     }
     elseif($total && $limit) {
       $pages = ceil($total / $limit);
-    }
-
-    if(!$page) {
-      // Starts on page 1 by default.
-      $page = 1;
     }
 
     // Sets the response.
