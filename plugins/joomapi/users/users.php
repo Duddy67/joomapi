@@ -42,15 +42,22 @@ class plgJoomapiUsers extends JPlugin
       return $deviceToken;
     }
 
+    // Retrieves the user's credentials from the basic authorization method.
     $jinput = JFactory::getApplication()->input;
     $authorization = $jinput->server->get('HTTP_AUTHORIZATION', '', 'str');
-//file_put_contents('debog_file.txt', print_r($deviceToken, true));
+
     if(preg_match('#^\s*(Basic)\s+(.+)$#', $authorization, $matches)) {
-      $base64 = $matches[2];
-      $authValue = base64_decode($base64);
-      preg_match('#^(.+):(.+)?$#', $authValue, $matches);
+      $basicString = $matches[2];
+      // Separates the username from the password (encoded base64).
+      preg_match('#^(.+):(.+)?$#', $basicString, $matches);
+      // Decipheres the user password.
+      $password = base64_decode($matches[2]);
+    }
+    else {
+      return JoomapiHelperApi::generateError('REQ_IPL');
     }
 
+    // Gets the user's data.
     $db = JFactory::getDbo();
     $query = $db->getQuery(true)
     ->select('id, password')
@@ -58,13 +65,14 @@ class plgJoomapiUsers extends JPlugin
     ->where('username='.$db->quote($matches[1]));
     $db->setQuery($query);
     $user = $db->loadObject();
+//file_put_contents('debog_file.txt', print_r($query->__toString(), true));
 
     if($user === null) {
       return JoomapiHelperApi::generateError('SRV_UNF');
     }
 
-    //$userId = UserHelper::getUserId($matches[1]);
-    if(UserHelper::verifyPassword($matches[2], $user->password) !== true) {
+    // Checks the given password.
+    if(UserHelper::verifyPassword($password, $user->password) !== true) {
       return JoomapiHelperApi::generateError('SRV_PNC');
     }
 

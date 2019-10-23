@@ -47,7 +47,7 @@ class JoomapiViewRequest extends JViewLegacy
     //
     header('HTTP/1.0 '.$this->response['status']);
     //
-    unset($this->response['status']);
+    //unset($this->response['status']);
 
     // Enable CORS
     /*if ($enable_cors != '0')
