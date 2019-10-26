@@ -65,7 +65,6 @@ class plgJoomapiUsers extends JPlugin
     ->where('username='.$db->quote($matches[1]));
     $db->setQuery($query);
     $user = $db->loadObject();
-//file_put_contents('debog_file.txt', print_r($query->__toString(), true));
 
     if($user === null) {
       return JoomapiHelperApi::generateError('SRV_UNF');
@@ -76,11 +75,10 @@ class plgJoomapiUsers extends JPlugin
       return JoomapiHelperApi::generateError('SRV_PNC');
     }
 
-    // Removes a possible previous token registration for this user.
+    // Removes a possible previous registration for this user.
     $query->clear();
     $query->delete('#__joomapi_user_token')
-	  ->where('user_id='.(int)$user->id)
-	  ->where('device_token='.$db->Quote($deviceToken));
+	  ->where('user_id='.(int)$user->id);
     $db->setQuery($query);
     $db->execute();
 

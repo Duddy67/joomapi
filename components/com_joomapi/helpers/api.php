@@ -89,6 +89,19 @@ class JoomapiHelperApi
   }
 
 
+  public static function checkUserToken($token)
+  {
+    $db = JFactory::getDbo();
+    $query = $db->getQuery(true);
+    $query->select('COUNT(*)')
+	  ->from('#__joomapi_user_token')
+	  ->where('user_token='.$db->Quote($token));
+    $db->setQuery($query);
+
+    return (int)$db->loadResult();
+  }
+
+
   /**
    * Generates an error array from the given error code.
    *
@@ -154,6 +167,12 @@ class JoomapiHelperApi
 	$error['status'] = '404 Not Found';
         $error['error_code'] = 'REQ_INF';
         $error['error_description'] = 'Identifier not found';
+        break;
+
+      case 'REQ_ITK':
+	$error['status'] = '401 Unauthorized';
+        $error['error_code'] = 'REQ_ITK';
+        $error['error_description'] = 'Invalid token';
         break;
     }
 

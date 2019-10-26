@@ -46,7 +46,14 @@ class plgJoomapiContent extends JPlugin
     $jinput = JFactory::getApplication()->input;
     $search = $jinput->get('search', '', 'string');
     $page = $jinput->get('page', 1, 'integer');
+    $token = $jinput->get('token', '', 'string');
 
+    // Checks for valid token.
+    if(empty($token) || !JoomapiHelperApi::checkUserToken($token)) {
+      return JoomapiHelperApi::generateError('REQ_ITK');
+    }
+
+file_put_contents('debog_file.txt', print_r($token, true));
     // Computes the offset value for pagination.
     $limit = $this->params->def('limit', 50);
     $offset = $pages = 0;
